@@ -1,0 +1,19 @@
+{
+  "name": "exchange",
+  "version": "1.0.0",
+  "description": "main api of rateexchange",
+  "main": "server.js",
+  "scripts": {
+    "start": "PORT=8000 node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "marcogbarcellos",
+  "license": "MIT",
+  "dependencies": {
+    "boom": "^3.2.2",
+    "hapi": "^13.5.0",
+    "joi": "^9.0.1",
+    "mongojs": "^2.4.0",
+    "node-uuid": "^1.4.7"
+  }
+}
