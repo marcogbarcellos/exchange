@@ -1,5 +1,5 @@
 const Mongoose = require('mongoose');
-const config = require('./config');
+const config = require('./config')[process.env.NODE_ENV];
 
 Mongoose.connect('mongodb://' + config.database.host + '/' + config.database.db);
 

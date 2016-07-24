@@ -35,7 +35,7 @@ exports.getOne = {
 exports.create = {
   validate: {
     payload: {
-      password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
+      password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required(),
       firstName: Joi.string().min(3).max(30),
       lastName: Joi.string().min(3).max(30),
       email: Joi.string().email().required()
@@ -66,14 +66,15 @@ exports.update = {
     }).required().min(1)
   },
   handler: function(request, reply) {
+    if(request.payload.email){
+        reply(Boom.forbidden('Email cannot be updated'));
+    }
     request.payload.dateUpdated = new Date();
     User.findByIdAndUpdate(request.params.id, { $set: request.payload},{new: true},
       function (err, user) {
         if (err) {
           reply(Boom.forbidden(getErrorMessageFrom(err))); // HTTP 403
         } 
-        console.log('err',err);
-        console.log('user',user);
         reply(user); // HTTP 201
       }
     );
