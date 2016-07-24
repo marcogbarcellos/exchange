@@ -1,4 +1,4 @@
-var users = require('./users');
-var schedules = require('./schedules');
+const users = require('./user');
+const schedules = require('./schedule');
 
-module.exports = [].concat(users, schedules);
+module.exports = [].concat(users.endpoints/*, schedules.endpoints*/);

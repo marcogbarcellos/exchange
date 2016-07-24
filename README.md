@@ -9,3 +9,12 @@ npm install
 
 npm start
 ```
+##Useful Curl commands for test purposes
+
+``` 
+curl --data "email=marcogbarcellos@gmail.com&password=Test123&firstName=Marco&lastName=Gabriel" http://localhost:8000/users
+
+curl -X PUT --data "firstName=Heloisa" http://localhost:8000/users/SOME_ID
+
+curl -X DELETE http://localhost:8000/users/SOME_ID
+```

@@ -10,16 +10,16 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'GET',
-        path: '/users',
+        path: '/schedules',
         handler: function (request, reply) {
 
-            db.users.find((err, users) => {
+            db.schedules.find((err, docs) => {
 
                 if (err) {
                     return reply(Boom.wrap(err, 'Internal MongoDB error'));
                 }
 
-                reply(users);
+                reply(docs);
             });
 
         }
@@ -27,22 +27,22 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'GET',
-        path: '/users/{id}',
+        path: '/schedules/{id}',
         handler: function (request, reply) {
 
-            db.users.findOne({
+            db.schedules.findOne({
                 _id: request.params.id
-            }, (err, user) => {
+            }, (err, doc) => {
 
                 if (err) {
                     return reply(Boom.wrap(err, 'Internal MongoDB error'));
                 }
 
-                if (!user) {
+                if (!doc) {
                     return reply(Boom.notFound());
                 }
 
-                reply(user);
+                reply(doc);
             });
 
         }
@@ -50,31 +50,30 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'POST',
-        path: '/users',
+        path: '/schedules',
         handler: function (request, reply) {
 
-            const user = request.payload;
+            const schedule = request.payload;
 
             //Create an id
-            user._id = uuid.v1();
+            schedule._id = uuid.v1();
 
-            db.users.save(user, (err, result) => {
+            db.schedules.save(schedule, (err, result) => {
 
                 if (err) {
                     return reply(Boom.wrap(err, 'Internal MongoDB error'));
                 }
 
-                reply(user);
+                reply(schedule);
             });
         },
         config: {
             validate: {
                 payload: {
-                    username: Joi.string().alphanum().min(3).max(30).required(),
-                    password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
-                    firstName: Joi.string().min(7).max(30).required(),
-                    lastName: Joi.string().min(7).max(30).required(),
-                    email: Joi.string().email()
+                    from: Joi.date().timestamp('unix'),
+                    to: Joi.date().timestamp('unix'),
+                    lat: Joi.number(),
+                    long: Joi.number()
                 }
             }
         }
@@ -82,10 +81,10 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'PATCH',
-        path: '/users/{id}',
+        path: '/schedules/{id}',
         handler: function (request, reply) {
-            //TODO 
-            db.users.update({
+
+            db.schedules.update({
                 _id: request.params.id
             }, {
                 $set: request.payload
@@ -105,9 +104,10 @@ exports.register = function (server, options, next) {
         config: {
             validate: {
                 payload: Joi.object({
-                    password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
-                    firstName: Joi.string().min(7).max(30).required(),
-                    lastName: Joi.string().min(7).max(30).required()
+                    from: Joi.date().timestamp('unix'),
+                    to: Joi.date().timestamp('unix'),
+                    lat: Joi.number(),
+                    long: Joi.number()
                 }).required().min(1)
             }
         }
@@ -115,10 +115,10 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'DELETE',
-        path: '/users/{id}',
+        path: '/schedules/{id}',
         handler: function (request, reply) {
 
-            db.users.remove({
+            db.schedules.remove({
                 _id: request.params.id
             }, function (err, result) {
 
@@ -135,28 +135,9 @@ exports.register = function (server, options, next) {
         }
     });
 
-    //TODO
-    server.route({
-        method: 'POST',
-        path: '/users/login',
-        handler: function (request, reply) {
-
-            reply('TO DO');
-        }
-    });
-
-    //TODO
-    server.route({
-        method: 'POST',
-        path: '/users/logout',
-        handler: function (request, reply) {
-            reply('TO DO');
-        }
-    });
-
     return next();
 };
 
 exports.register.attributes = {
-    name: 'routes-users'
+    name: 'routes-schedules'
 };

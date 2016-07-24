@@ -1,31 +1,23 @@
 'use strict';
 
-const Hapi = require('hapi');
-const mongojs = require('mongojs');
-const routes = require('./routes');
+const Hapi 			= require('hapi');
+const Mongoose  = require('mongoose');
+const routes 		= require('./routes/index');
+const config 		= require('./config/config');
+const Db 				= require('./config/database');
 
 // Create a server with a host and port
 const server = new Hapi.Server();
+
 server.connection({
-    host: '0.0.0.0',
-		port: Number(process.env.PORT)
+    host: config.server.host,
+		port: config.server.port
 });
 
-//Connect to db
-server.app.db = mongojs('exchange', ['users','schedules']);
+server.route(routes);
 
- 
-//Load plugins and start server
-server.register(routes, (err) => {
-
-    if (err) {
-        throw err;
-    }
-
-    // Start the server
-    server.start((err) => {
-
-        console.log('listening on: http://127.0.0.1:'+process.env.PORT);
-    });
-
+server.start((err) => {
+    console.log('listening on: http://127.0.0.1:'+config.server.port);
 });
+
+exports.server = server;

@@ -4,16 +4,18 @@ const Boom = require('boom');
 const uuid = require('node-uuid');
 const Joi = require('joi');
 
+// User1(id), User2(id), from(dateUnix), to(dateUnix), lat, lon 
+
 exports.register = function (server, options, next) {
 
     const db = server.app.db;
 
     server.route({
         method: 'GET',
-        path: '/books',
+        path: '/schedules',
         handler: function (request, reply) {
 
-            db.books.find((err, docs) => {
+            db.schedules.find((err, docs) => {
 
                 if (err) {
                     return reply(Boom.wrap(err, 'Internal MongoDB error'));
@@ -27,10 +29,10 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'GET',
-        path: '/books/{id}',
+        path: '/schedules/{id}',
         handler: function (request, reply) {
 
-            db.books.findOne({
+            db.schedules.findOne({
                 _id: request.params.id
             }, (err, doc) => {
 
@@ -50,29 +52,30 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'POST',
-        path: '/books',
+        path: '/schedules',
         handler: function (request, reply) {
 
-            const book = request.payload;
+            const schedule = request.payload;
 
             //Create an id
-            book._id = uuid.v1();
+            schedule._id = uuid.v1();
 
-            db.books.save(book, (err, result) => {
+            db.schedules.save(schedule, (err, result) => {
 
                 if (err) {
                     return reply(Boom.wrap(err, 'Internal MongoDB error'));
                 }
 
-                reply(book);
+                reply(schedule);
             });
         },
         config: {
             validate: {
                 payload: {
-                    title: Joi.string().min(10).max(50).required(),
-                    author: Joi.string().min(10).max(50).required(),
-                    isbn: Joi.number()
+                    from: Joi.date().timestamp('unix'),
+                    to: Joi.date().timestamp('unix'),
+                    lat: Joi.number(),
+                    long: Joi.number()
                 }
             }
         }
@@ -80,10 +83,10 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'PATCH',
-        path: '/books/{id}',
+        path: '/schedules/{id}',
         handler: function (request, reply) {
 
-            db.books.update({
+            db.schedules.update({
                 _id: request.params.id
             }, {
                 $set: request.payload
@@ -103,9 +106,10 @@ exports.register = function (server, options, next) {
         config: {
             validate: {
                 payload: Joi.object({
-                    title: Joi.string().min(10).max(50).optional(),
-                    author: Joi.string().min(10).max(50).optional(),
-                    isbn: Joi.number().optional()
+                    from: Joi.date().timestamp('unix'),
+                    to: Joi.date().timestamp('unix'),
+                    lat: Joi.number(),
+                    long: Joi.number()
                 }).required().min(1)
             }
         }
@@ -113,10 +117,10 @@ exports.register = function (server, options, next) {
 
     server.route({
         method: 'DELETE',
-        path: '/books/{id}',
+        path: '/schedules/{id}',
         handler: function (request, reply) {
 
-            db.books.remove({
+            db.schedules.remove({
                 _id: request.params.id
             }, function (err, result) {
 
@@ -137,5 +141,5 @@ exports.register = function (server, options, next) {
 };
 
 exports.register.attributes = {
-    name: 'routes-books'
+    name: 'routes-schedules'
 };
