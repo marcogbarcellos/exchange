@@ -1,9 +1,11 @@
 'use strict';
 
-const Boom = require('boom');
-const uuid = require('node-uuid');
-const Joi = require('joi');
-const User = require('../models/user').User;
+const Boom     = require('boom');
+const uuid     = require('node-uuid');
+const Joi      = require('joi');
+const Promise  = require('bluebird');
+const User     = require('../models/user').User;
+const Schedule = require('../models/schedule').Schedule;
 
 exports.getAll = {
   handler: function(request, reply) {
@@ -32,13 +34,34 @@ exports.getOne = {
   }
 };
 
+exports.getUserSchedules = {
+  handler: function(request, reply) {
+    User.findOne({ '_id': request.params.id })
+    .then(function(user) {
+      if (!user) {
+        return reply(Boom.notFound());
+      }
+      return Schedule.find({ firstUserId: user._id });
+    })
+    .then(function(schedules) {
+      if (!schedules) {
+        return reply(Boom.notFound());
+      }
+      return reply(schedules);
+    })
+    .catch(function(err) {
+      return reply(Boom.wrap(err));
+    });
+  }
+};
+
 exports.create = {
   validate: {
     payload: {
-      password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required(),
-      firstName: Joi.string().min(3).max(30),
-      lastName: Joi.string().min(3).max(30),
-      email: Joi.string().email().required()
+      password  : Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required(),
+      firstName : Joi.string().min(3).max(30),
+      lastName  : Joi.string().min(3).max(30),
+      email     : Joi.string().email().required()
     }
   },
   handler: function(request, reply) {
@@ -48,7 +71,7 @@ exports.create = {
         if (11000 === err.code || 11001 === err.code) {
           reply(Boom.forbidden("please provide another user id, it already exist"));
         } else {
-          reply(Boom.forbidden(getErrorMessageFrom(err))); // HTTP 403
+          reply(Boom.forbidden(err)); // HTTP 403
         }
       } else {
         reply(user); // HTTP 201
@@ -60,9 +83,9 @@ exports.create = {
 exports.update = {
   validate: {
     payload: Joi.object({
-      password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
-      firstName: Joi.string().min(7).max(30),
-      lastName: Joi.string().min(7).max(30)
+      password  : Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
+      firstName : Joi.string().min(7).max(30),
+      lastName  : Joi.string().min(7).max(30)
     }).required().min(1)
   },
   handler: function(request, reply) {
@@ -73,7 +96,7 @@ exports.update = {
     User.findByIdAndUpdate(request.params.id, { $set: request.payload},{new: true},
       function (err, user) {
         if (err) {
-          reply(Boom.forbidden(getErrorMessageFrom(err))); // HTTP 403
+          reply(Boom.forbidden(err)); // HTTP 403
         } 
         reply(user); // HTTP 201
       }

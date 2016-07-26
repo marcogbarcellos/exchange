@@ -10,6 +10,7 @@
   "author": "marcogbarcellos",
   "license": "MIT",
   "dependencies": {
+    "bluebird": "^3.4.1",
     "boom": "^3.2.2",
     "code": "^3.0.1",
     "hapi": "^13.5.0",

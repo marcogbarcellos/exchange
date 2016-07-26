@@ -1,5 +1,6 @@
 const uuid 			 = require('node-uuid');
 const Mongoose   = require('mongoose');
+Mongoose.Promise = require('bluebird');
 const Schema     = Mongoose.Schema;
 // The data schema for an event that we're tracking in our analytics engine
 const userSchema = new Schema({
@@ -13,7 +14,6 @@ const userSchema = new Schema({
 });
 
 const user = Mongoose.model('user', userSchema);
-
 
 module.exports = {
   User: user
