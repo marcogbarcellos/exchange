@@ -11,9 +11,9 @@ exports.getAll = {
   handler: function(request, reply) {
     User.find({}, function(err, users) {
       if (err) {
-        return reply(Boom.wrap(err, 'Internal MongoDB error'));
+        return reply(Boom.wrap(err, 500, 'Internal MongoDB error'));
       }
-      reply(users);
+      return reply(users);
     });
   }
 };
@@ -24,12 +24,12 @@ exports.getOne = {
       '_id': request.params.id
     }, function(err, user) {
       if (err) {
-        return reply(Boom.wrap(err, 'Internal MongoDB error'));
+        return reply(Boom.wrap(err, 500, 'Internal MongoDB error'));
       }
       if (!user) {
         return reply(Boom.notFound());
       }
-      reply(user);
+      return reply(user);
     });
   }
 };
@@ -43,10 +43,8 @@ exports.getUserSchedules = {
       }
       return Schedule.find({ firstUserId: user._id });
     })
-    .then(function(schedules) {
-      if (!schedules) {
-        return reply(Boom.notFound());
-      }
+    .then(function(err,schedules) {
+      
       return reply(schedules);
     })
     .catch(function(err) {
@@ -68,14 +66,9 @@ exports.create = {
     var user = new User(request.payload);
     user.save(function(err, user) {
       if (err) {
-        if (11000 === err.code || 11001 === err.code) {
-          reply(Boom.forbidden("please provide another user id, it already exist"));
-        } else {
-          reply(Boom.forbidden(err)); // HTTP 403
-        }
-      } else {
-        reply(user); // HTTP 201
-      }
+        return reply(Boom.forbidden(err));
+      } 
+      return reply(user);
     });
   }
 };
@@ -89,16 +82,17 @@ exports.update = {
     }).required().min(1)
   },
   handler: function(request, reply) {
-    if(request.payload.email){
-        reply(Boom.forbidden('Email cannot be updated'));
-    }
+    
     request.payload.dateUpdated = new Date();
     User.findByIdAndUpdate(request.params.id, { $set: request.payload},{new: true},
       function (err, user) {
         if (err) {
-          reply(Boom.forbidden(err)); // HTTP 403
+          return reply(Boom.forbidden(err)); 
+        }
+        if(!user){
+          return reply(Boom.notFound());
         } 
-        reply(user); // HTTP 201
+        return reply(user); 
       }
     );
   }
@@ -106,18 +100,14 @@ exports.update = {
 
 exports.remove = {
   handler: function(request, reply) {
-    User.findById(request.params.id, function(err, user) {
-      if (!err && user) {
-        user.remove();
-        reply({
-          message: "User deleted successfully"
-        });
-      } else if (!err) {
-        // Couldn't find the object.
-        reply(Boom.notFound());
-      } else {
-        reply(Boom.badRequest("Could not delete user"));
+    User.findByIdAndRemove(request.params.id, function(err, user) {
+      if(err){
+        return reply(Boom.wrap(err, 500, 'Internal MongoDB error'));
       }
+      if(!user){
+        return reply(Boom.notFound());
+      }
+      return reply( { message: "User deleted successfully" } );
     });
   }
 };

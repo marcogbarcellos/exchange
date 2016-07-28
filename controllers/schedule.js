@@ -9,9 +9,9 @@ exports.getAll = {
   handler: function(request, reply) {
     Schedule.find({}, function(err, schedules) {
       if (err) {
-        return reply(Boom.wrap(err, 'Internal MongoDB error'));
+        return reply(Boom.wrap(err, 500, 'Internal MongoDB error'));
       }
-      reply(schedules);
+      return reply(schedules);
     });
   }
 };
@@ -22,12 +22,12 @@ exports.getOne = {
       '_id': request.params.id
     }, function(err, schedule) {
       if (err) {
-        return reply(Boom.wrap(err, 'Internal MongoDB error'));
+        return reply(Boom.wrap(err, 500, 'Internal MongoDB error'));
       }
       if (!schedule) {
         return reply(Boom.notFound());
       }
-      reply(schedule);
+      return reply(schedule);
     });
   }
 };
@@ -48,14 +48,9 @@ exports.create = {
     var schedule = new Schedule(request.payload);
     schedule.save(function(err, schedule) {
       if (err) {
-        if (11000 === err.code || 11001 === err.code) {
-          reply(Boom.forbidden("please provide another schedule, it already exist"));
-        } else {
-          reply(Boom.forbidden(err)); // HTTP 403
-        }
-      } else {
-        reply(schedule); // HTTP 201
+        return reply(Boom.forbidden(err));
       }
+      return reply(schedule);
     });
   }
 };
@@ -72,16 +67,16 @@ exports.update = {
     }).required().min(1)
   },
   handler: function(request, reply) {
-    if(request.payload.firstUserId){
-        reply(Boom.forbidden('Initial User cannot be changed'));
-    }
     request.payload.dateUpdated = new Date();
     Schedule.findByIdAndUpdate(request.params.id, { $set: request.payload},{new: true},
       function (err, schedule) {
         if (err) {
-          reply(Boom.forbidden(err)); // HTTP 403
-        } 
-        reply(schedule); // HTTP 201
+          return reply(Boom.forbidden(err)); 
+        }
+        if(!schedule){
+          return reply(Boom.notFound());
+        }  
+        return reply(schedule); 
       }
     );
   }
@@ -89,18 +84,14 @@ exports.update = {
 
 exports.remove = {
   handler: function(request, reply) {
-    Schedule.findById(request.params.id, function(err, schedule) {
-      if (!err && schedule) {
-        schedule.remove();
-        reply({
-          message: "Schedule deleted successfully"
-        });
-      } else if (!err) {
-        // Couldn't find the object.
-        reply(Boom.notFound());
-      } else {
-        reply(Boom.badRequest("Could not delete schedule"));
+    Schedule.findByIdAndRemove(request.params.id, function(err, schedule) {
+      if(err){
+        return reply(Boom.wrap(err, 500, 'Internal MongoDB error'));
       }
+      if(!schedule){
+        return reply(Boom.notFound());
+      }
+      return reply( { message: "User deleted successfully" } );
     });
   }
 };

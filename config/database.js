@@ -1,14 +1,20 @@
-const Mongoose = require('mongoose');
-const config = require('./config')[process.env.NODE_ENV];
+'use strict';
 
-Mongoose.connect('mongodb://' + config.database.host + '/' + config.database.db);
+const mongoose = require('mongoose');
+const config 	 = require('./config')[process.env.NODE_ENV];
 
-const db = Mongoose.connection;
-db.on('error', console.error.bind(console, 'connection error'));
+let db = null;
 
-db.once('open', function callback() {
-    console.log("Connection with database succeeded.");
-});
+function startDb() {
+	db = mongoose.connect('mongodb://' + config.database.host + '/' + config.database.db);
+	
+	db.connection.on('error', console.error.bind(console, 'connection error'));
 
-exports.Mongoose = Mongoose;
-exports.db = db;
+	db.connection.once('open', function callback() {
+	    console.log("Connection with database succeeded.");
+	});
+
+}
+
+module.exports.startDb = startDb;
+module.exports.db 		 = db;

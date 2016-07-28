@@ -2,5 +2,4 @@
 
 module.exports = {
 
-    DEFAULT_ENV: 'development'
 };
