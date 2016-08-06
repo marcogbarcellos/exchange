@@ -1,3 +1,5 @@
+'use strict';
+
 const uuid 			 = require('node-uuid');
 const Mongoose   = require('mongoose');
 Mongoose.Promise = require('bluebird');
@@ -14,7 +16,8 @@ const scheduleSchema = new Schema({
   latitude     		 : { type: Number, required: true },
   longitude    		 : { type: Number, required: true },
   dateCreated  		 : { type: Date,   required: true, default: Date.now },
-  dateUpdated      : { type: Date }
+  dateUpdated      : { type: Date },
+  removed          : {type: Boolean, required: true, default: false}
 });
 
 const schedule = Mongoose.model('schedule', scheduleSchema);

@@ -1,3 +1,4 @@
+
 'use strict';
 
 const Boom = require('boom');
@@ -7,7 +8,7 @@ const Schedule = require('../models/schedule').Schedule;
 
 exports.getAll = {
   handler: function(request, reply) {
-    Schedule.find({}, function(err, schedules) {
+    Schedule.find({removed:false}, function(err, schedules) {
       if (err) {
         return reply(Boom.wrap(err, 500, 'Internal MongoDB error'));
       }
@@ -68,30 +69,47 @@ exports.update = {
   },
   handler: function(request, reply) {
     request.payload.dateUpdated = new Date();
-    Schedule.findByIdAndUpdate(request.params.id, { $set: request.payload},{new: true},
-      function (err, schedule) {
-        if (err) {
-          return reply(Boom.forbidden(err)); 
-        }
-        if(!schedule){
-          return reply(Boom.notFound());
-        }  
-        return reply(schedule); 
+
+    Schedule.findById(request.params.id)
+    .then(function (schedule){
+      if(!schedule){
+        return reply(Boom.notFound());
       }
-    );
+      for (var k in request.payload) {
+        schedule[k] = request.payload[k];
+      }
+      return schedule.save(); 
+    })
+    .then(function (schedule) {
+      if(schedule) {
+       return reply(schedule);
+      }
+      return Promise.reject(new Error('could not update user.'));  
+    })
+    .catch(function(err) {
+       reply(Boom.wrap(err));
+    });
   }
 };
 
 exports.remove = {
   handler: function(request, reply) {
-    Schedule.findByIdAndRemove(request.params.id, function(err, schedule) {
-      if(err){
-        return reply(Boom.wrap(err, 500, 'Internal MongoDB error'));
-      }
-      if(!schedule){
+    Schedule.findById(request.params.id)
+    .then(function (schedule){
+      if(!schedule || schedule.removed){
         return reply(Boom.notFound());
       }
-      return reply( { message: "User deleted successfully" } );
+      schedule.removed = true;
+      return schedule.save(); 
+    })
+    .then(function (schedule) {
+      if(schedule) {
+        reply(schedule);
+      }  
+    })
+    .catch(function(err) {
+       reply(Boom.wrap(err));
     });
+
   }
 };

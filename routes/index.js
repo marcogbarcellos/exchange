@@ -1,3 +1,5 @@
+'use strict';
+
 const users = require('./user');
 const schedules = require('./schedule');
 
