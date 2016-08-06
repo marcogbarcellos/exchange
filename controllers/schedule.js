@@ -6,7 +6,7 @@ const uuid = require('node-uuid');
 const Joi = require('joi');
 const Schedule = require('../models/schedule').Schedule;
 
-exports.getAll = {
+module.exports.getAll = {
   handler: function(request, reply) {
     Schedule.find({removed:false}, function(err, schedules) {
       if (err) {
@@ -17,7 +17,7 @@ exports.getAll = {
   }
 };
 
-exports.getOne = {
+module.exports.getOne = {
   handler: function(request, reply) {
     Schedule.findOne({
       '_id': request.params.id
@@ -33,7 +33,7 @@ exports.getOne = {
   }
 };
 
-exports.create = {
+module.exports.create = {
   validate: {
     payload: {
       firstUserId:    Joi.string().required(),
@@ -56,7 +56,7 @@ exports.create = {
   }
 };
 
-exports.update = {
+module.exports.update = {
   validate: {
     payload: Joi.object({
       currencyWanted: Joi.string(),
@@ -92,7 +92,7 @@ exports.update = {
   }
 };
 
-exports.remove = {
+module.exports.remove = {
   handler: function(request, reply) {
     Schedule.findById(request.params.id)
     .then(function (schedule){

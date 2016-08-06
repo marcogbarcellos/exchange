@@ -7,7 +7,7 @@ const Promise  = require('bluebird');
 const User     = require('../models/user').User;
 const Schedule = require('../models/schedule').Schedule;
 
-exports.getAll = {
+module.exports.getAll = {
   handler: function(request, reply) {
     User.find({removed:false}, function(err, users) {
       if (err) {
@@ -18,7 +18,7 @@ exports.getAll = {
   }
 };
 
-exports.getOne = {
+module.exports.getOne = {
   handler: function(request, reply) {
     User.findOne({
       '_id': request.params.id
@@ -34,7 +34,7 @@ exports.getOne = {
   }
 };
 
-exports.getUserSchedules = {
+module.exports.getUserSchedules = {
   handler: function(request, reply) {
     User.findOne({ '_id': request.params.id })
     .then(function(user) {
@@ -52,7 +52,7 @@ exports.getUserSchedules = {
   }
 };
 
-exports.create = {
+module.exports.create = {
   validate: {
     payload: {
       password      : Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required(),
@@ -85,7 +85,7 @@ exports.create = {
   }
 };
 
-exports.update = {
+module.exports.update = {
   validate: {
     payload: Joi.object({
       password  : Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/),
@@ -119,7 +119,7 @@ exports.update = {
   }
 };
 
-exports.remove = {
+module.exports.remove = {
   handler: function(request, reply) {
     User.findById(request.params.id)
     .then(function (user){
@@ -140,7 +140,7 @@ exports.remove = {
   }
 };
 
-exports.login = {
+module.exports.login = {
   validate: {
     payload: {
       password  : Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required(),
